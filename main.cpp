@@ -4,11 +4,13 @@
 #include <vector>
 #include <sstream>
 
+// Constructor initializes SDL and the game board
 BestOfFive::BestOfFive() : window(nullptr), renderer(nullptr), currentPlayer(PLAYER_X), isRunning(true), xWins(0), oWins(0) {
     initSDL();
     resetBoard();
 }
 
+// Destructor cleans up resources
 BestOfFive::~BestOfFive() {
     TTF_CloseFont(font);
     TTF_Quit();
@@ -17,6 +19,8 @@ BestOfFive::~BestOfFive() {
     SDL_Quit();
 }
 
+
+// Initialize SDL components
 void BestOfFive::initSDL() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "Failed to initialize SDL: " << SDL_GetError() << std::endl;
@@ -28,7 +32,8 @@ void BestOfFive::initSDL() {
         exit(1);
     }
 
-    window = SDL_CreateWindow("Tic Tac Toe", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    // Create window and renderer
+    window = SDL_CreateWindow("Best of Five", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     if (!window) {
         std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
         exit(1);
@@ -40,22 +45,25 @@ void BestOfFive::initSDL() {
         exit(1);
     }
 
-    font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 24); // Use a system font
+    // Load font
+    font = TTF_OpenFont("/System/Library/Fonts/Supplemental/Arial.ttf", 24);
     if (!font) {
         std::cerr << "Failed to open font: " << TTF_GetError() << std::endl;
         exit(1);
     }
 }
 
+// Reset the game board to the initial state
 void BestOfFive::resetBoard() {
     for (int row = 0; row < GRID_SIZE; ++row) {
         for (int col = 0; col < GRID_SIZE; ++col) {
             board[row][col] = NONE;
         }
     }
-    currentPlayer = PLAYER_X;
+    currentPlayer = PLAYER_X; // X starts first
 }
 
+// Handle user input events
 void BestOfFive::handleEvents() {
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
@@ -66,6 +74,7 @@ void BestOfFive::handleEvents() {
             int row = y / CELL_SIZE;
             int col = x / CELL_SIZE;
 
+            // Check if the click is within the board
             if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE && board[row][col] == NONE) {
                 board[row][col] = currentPlayer;
                 if (checkWin()) {
@@ -74,18 +83,19 @@ void BestOfFive::handleEvents() {
                     } else {
                         oWins++;
                     }
-                    render();
-                    showWinPopup();
+                    render(); // Update the display
+                    showWinPopup(); // Show the win popup
                 } else if (checkDraw()) {
-                    resetBoard();
+                    resetBoard(); // Reset for a new game
                 } else {
-                    switchPlayer();
+                    switchPlayer(); // Change turns
                 }
             }
         }
     }
 }
 
+// Render the game board and pieces
 void BestOfFive::render() {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
@@ -101,6 +111,7 @@ void BestOfFive::render() {
     SDL_RenderPresent(renderer);
 }
 
+// Draw the grid lines of the game board
 void BestOfFive::drawBoard() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
@@ -110,27 +121,30 @@ void BestOfFive::drawBoard() {
     }
 }
 
+// Draw X or O in a cell
 void BestOfFive::drawCell(int row, int col) {
     int x = col * CELL_SIZE;
     int y = row * CELL_SIZE;
 
     if (board[row][col] == PLAYER_X) {
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Red for X
         int margin = 10;  // Adjust the margin as needed
         drawLine(x + margin, y + margin, x + CELL_SIZE - margin, y + CELL_SIZE - margin);
         drawLine(x + margin, y + CELL_SIZE - margin, x + CELL_SIZE - margin, y + margin);
     } else if (board[row][col] == PLAYER_O) {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // Bluye for O
         int margin = 10;  // Adjust the margin as needed
         SDL_Rect rect = { x + margin, y + margin, CELL_SIZE - 2 * margin, CELL_SIZE - 2 * margin };
         SDL_RenderDrawRect(renderer, &rect);
     }
 }
 
+// Draw a line from (x1, y1) to (x2, y2)
 void BestOfFive::drawLine(int x1, int y1, int x2, int y2) {
     SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
 }
 
+// Check if the current player has won
 bool BestOfFive::checkWin() {
     for (int i = 0; i < GRID_SIZE; ++i) {
         for (int j = 0; j < GRID_SIZE - 4; ++j) {
@@ -158,6 +172,7 @@ bool BestOfFive::checkWin() {
     return false;
 }
 
+// Check if the game is a draw
 bool BestOfFive::checkDraw() {
     for (int i = 0; i < GRID_SIZE; ++i) {
         for (int j = 0; j < GRID_SIZE; ++j) {
@@ -169,10 +184,12 @@ bool BestOfFive::checkDraw() {
     return true;
 }
 
+// Switch to the other player
 void BestOfFive::switchPlayer() {
     currentPlayer = (currentPlayer == PLAYER_X) ? PLAYER_O : PLAYER_X;
 }
 
+// Main game loop
 void BestOfFive::run() {
     showMenu();
     while (isRunning) {
@@ -181,6 +198,7 @@ void BestOfFive::run() {
     }
 }
 
+// Render text to a texture
 SDL_Texture* BestOfFive::renderText(const std::string& message, SDL_Color color, SDL_Renderer* renderer) {
     SDL_Surface* surface = TTF_RenderText_Solid(font, message.c_str(), color);
     if (!surface) {
@@ -210,6 +228,7 @@ void BestOfFive::renderTextAt(const std::string& message, SDL_Color color, int x
     }
 }
 
+// Show the main menu
 void BestOfFive::showMenu() {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
@@ -289,7 +308,7 @@ void BestOfFive::showMenu() {
                     } else if (x >= introButton.x && x <= introButton.x + introButton.w &&
                                y >= introButton.y && y <= introButton.y + introButton.h) {
                         std::cout << "Introduction button clicked!" << std::endl;
-                        showIntroduction();
+                        showIntroduction(); // Show introduction before starting the game
                         inMenu = false;
                     } else if (x >= leaveButton.x && x <= leaveButton.x + leaveButton.w &&
                                y >= leaveButton.y && y <= leaveButton.y + leaveButton.h) {
@@ -305,6 +324,7 @@ void BestOfFive::showMenu() {
     }
 }
 
+// Show the introduction screen
 void BestOfFive::showIntroduction() {
     std::cout << "Entered showIntroduction function!" << std::endl; // Log
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -417,6 +437,7 @@ void BestOfFive::showIntroduction() {
     }
 }
 
+// Show a popup when a player wins
 void BestOfFive::showWinPopup() {
     render(); 
 
