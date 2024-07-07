@@ -1,0 +1,30 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: g++ build active file",
+			"command": "/usr/bin/g++",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-g",
+				"${workspaceFolder}/main.cpp",
+				"-o",
+				"${workspaceFolder}/main",
+				"-I/Library/Frameworks/SDL2.framework/Headers/SDL2",
+				"-I/Library/Frameworks/SDL2_ttf.framework/Headers",
+				"-F/Library/Frameworks",
+				"-framework", "SDL2",
+				"-framework", "SDL2_ttf"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": "build",
+			"detail": "compiler: /usr/bin/g++"
+		}
+	]
+}
